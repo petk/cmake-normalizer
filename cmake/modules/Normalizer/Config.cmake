@@ -132,10 +132,8 @@ function(normalizer_config_default)
   return(PROPAGATE ${propagatedVariables})
 endfunction()
 
-#[=============================================================================[
-Set configuration.
-normalizer_config([<path-to-configuration>])
-#]=============================================================================]
+# Set configuration.
+# normalizer_config([<path-to-configuration>])
 function(normalizer_config)
   set(path "${ARGV0}")
 
@@ -155,6 +153,11 @@ function(normalizer_config)
   foreach(config IN LISTS NORMALIZER_CONFIGURATIONS)
     string(FIND "${config}" "=" position)
     string(SUBSTRING "${config}" 0 "${position}" variable)
+
+    if(NOT variable IN_LIST keys)
+      continue()
+    endif()
+
     math(EXPR position "${position} + 1")
     string(SUBSTRING "${config}" "${position}" -1 value)
     set("${variable}" "${value}")
@@ -185,55 +188,58 @@ function(normalizer_config_validate_boolean)
     normalizer_config_default(VARIABLE ${variable})
     message(
       AUTHOR_WARNING
-      "Configuration '${variable}' has unrecognized value "
-      "'${currentValue}'. Setting to default '${${variable}}'."
+      "Configuration '${variable}' has unrecognized value '${currentValue}'. "
+      "Setting to default '${${variable}}'."
     )
-
-    return(PROPAGATE ${variable})
   endif()
+
+  return(PROPAGATE ${variable})
 endfunction()
 
 # Validate normalize_indent_size configuration variable.
 function(normalizer_config_validate_indent_size)
-  if(NOT normalize_indent_size MATCHES "^[0-9]$")
-    set(currentValue "${normalize_indent_size}")
-    normalizer_config_default(VARIABLE normalize_indent_size)
+  set(key "normalize_indent_size")
+
+  if(NOT ${key} MATCHES "^[0-9]$")
+    set(currentValue "${${key}}")
+    normalizer_config_default(VARIABLE ${key})
     message(
       AUTHOR_WARNING
-      "Configuration 'normalize_indent_size' has unrecognized value "
-      "'${currentValue}'. Setting to default '${normalize_indent_size}'."
+      "Configuration '${key}' has unrecognized value '${currentValue}'. "
+      "Setting to default '${${key}}'."
     )
-
-    return(PROPAGATE normalize_indent_size)
   endif()
+
+  return(PROPAGATE ${key})
 endfunction()
 
 # Validate normalize_indent_style configuration variable.
 function(normalizer_config_validate_indent_style)
-  normalizer_config_is_boolean(normalize_indent_style isBoolean)
+  set(key "normalize_indent_style")
 
-  if(NOT normalize_indent_style MATCHES "^(space|tab)$" AND NOT isBoolean)
-    set(currentValue "${normalize_indent_style}")
-    normalizer_config_default(VARIABLE normalize_indent_style)
+  normalizer_config_is_boolean(${key} isBoolean)
+
+  if(NOT ${key} MATCHES "^(space|tab)$" AND NOT isBoolean)
+    set(currentValue "${${key}}")
+    normalizer_config_default(VARIABLE ${key})
     message(
       AUTHOR_WARNING
-      "Configuration 'normalize_indent_style' has unrecognized value "
-      "'${currentValue}'. Setting to default '${normalize_indent_style}'."
+      "Configuration '${key}' has unrecognized value '${currentValue}'. "
+      "Setting to default '${${key}}'."
     )
-
-    return(PROPAGATE normalize_indent_style)
   endif()
 
   # If set to truthy value, set it to default 'space'.
-  if(isBoolean AND normalize_indent_style)
-    normalizer_config_default(VARIABLE normalize_indent_style)
-    return(PROPAGATE normalize_indent_style)
+  if(isBoolean AND ${key})
+    normalizer_config_default(VARIABLE ${key})
   endif()
+
+  return(PROPAGATE ${key})
 endfunction()
 
-# normalizer_config_is_boolean(<variable> <result>)
 # Check if given variable <variable> is boolean and store the result in the
-# <result>
+# variable named <result>.
+# normalizer_config_is_boolean(<variable> <result>)
 function(normalizer_config_is_boolean)
   string(TOLOWER "${${ARGV0}}" variableLowerCase)
   set(${ARGV1} FALSE)
@@ -248,9 +254,9 @@ function(normalizer_config_is_boolean)
   return(PROPAGATE ${ARGV1})
 endfunction()
 
-# normalizer_config_is_false_boolean(<variable> <result>)
 # Check if given variable <variable> is false boolean and store the result in
-# the <result>.
+# the variable named <result>.
+# normalizer_config_is_false_boolean(<variable> <result>)
 function(normalizer_config_is_false_boolean)
   string(TOLOWER "${${ARGV0}}" variableLowerCase)
   set(${ARGV1} FALSE)
@@ -275,12 +281,10 @@ endfunction()
 
 function(normalizer_config_validate_cmake_minimum_required)
   set(key "normalize_cmake_minimum_required")
+
   normalizer_config_is_false_boolean(${key} isFalseBoolean)
 
-  if(
-    NOT isFalseBoolean
-    AND NOT ${key} MATCHES "^[0-9][0-9.]*[0-9]$"
-  )
+  if(NOT isFalseBoolean AND NOT ${key} MATCHES "^[0-9][0-9.]*[0-9]$")
     set(currentValue "${${key}}")
     normalizer_config_default(VARIABLE ${key})
     message(

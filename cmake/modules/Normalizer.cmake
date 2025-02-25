@@ -114,9 +114,15 @@ function(normalizer_execute)
   if(DEFINED NORMALIZER_PARALLEL)
     set(filesPool ${files})
 
+    set(options "")
+
     if(NORMALIZER_CONFIG)
-      set(config "--config=${NORMALIZER_CONFIG}")
+      list(APPEND options "--config=${NORMALIZER_CONFIG}")
     endif()
+
+    foreach(config IN LISTS NORMALIZER_CONFIGURATIONS)
+      list(APPEND options "--set=${config}")
+    endforeach()
 
     while(filesPool)
       set(arguments "")
@@ -138,7 +144,7 @@ function(normalizer_execute)
             --
             ${file}
             -q
-            ${config}
+            ${options}
         )
 
         list(APPEND processedFiles ${file})
