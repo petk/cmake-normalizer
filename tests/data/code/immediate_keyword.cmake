@@ -1,0 +1,8 @@
+configure_file(
+  config.h.in
+  config.h
+  NO_SOURCE_PERMISSIONS
+  IMMEDIATE
+  COPYONLY ESCAPE_QUOTES @ONLY
+  NEWLINE_STYLE UNIX
+)

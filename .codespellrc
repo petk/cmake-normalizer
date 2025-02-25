@@ -1,0 +1,11 @@
+# https://github.com/codespell-project/codespell
+
+[codespell]
+builtin = clear,code,en-GB_to_en-US,informal,names,rare,usage
+check-filenames =
+check-hidden =
+ignore-words-list =
+    master,
+skip =
+    ./.git,
+    ./out,

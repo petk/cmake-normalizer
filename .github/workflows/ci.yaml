@@ -1,0 +1,51 @@
+name: Run tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  check:
+    name: Run tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Install CMake
+        uses: lukka/get-cmake@latest
+
+      - name: Install PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.4
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+
+      - name: Install checking tools
+        run: |
+          pipx install codespell
+          curl -OL https://github.com/petk/normalizator/releases/latest/download/normalizator.phar
+          chmod +x normalizator.phar
+          mv normalizator.phar /usr/local/bin/normalizator
+
+      - name: Run Codespell
+        continue-on-error: true
+        run: codespell
+
+      - name: Run normalizator.phar
+        continue-on-error: true
+        run: normalizator check --not .git --not out --not tests/data .
+
+      - name: Build
+        run: |
+          cmake -B out
+          cmake --build out -j
+
+      - name: Run tests
+        run: ctest --test-dir out -j
